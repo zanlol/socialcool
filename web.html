@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Page</title>
+<style>
+.post {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+  word-wrap: break-word; /* Allow long words to be broken and wrap onto the next line */
+  overflow-wrap: break-word; /* Also handle overflow in browsers that support this property */
+}
+
+  .post img, .post video {
+    max-width: 100%;
+    max-height: 300px; /* Adjust height as needed */
+    margin-bottom: 5px;
+  }
+  .post a {
+    color: blue;
+  }
+</style>
+</head>
+<body>
+  <h1>Welcome to the Web Page</h1>
+
+  <div id="postForm">
+    <h2>Create a Post</h2>
+    <label for="postContent">Post Content:</label><br>
+    <textarea id="postContent" name="postContent"></textarea><br>
+    <label for="media">Upload Media (Image, Video):</label>
+    <input type="file" id="media" name="media" accept="image/*, video/*"><br>
+    <button onclick="cancelMedia()">Cancel Media</button>
+    <button onclick="submitPost()">Post</button>
+  </div>
+
+  <div id="postFeed">
+    <h2>Recent Posts</h2>
+    <!-- Posts will be displayed here -->
+  </div>
+
+  <script>
+    function submitPost() {
+      var postContent = document.getElementById("postContent").value;
+      var media = document.getElementById("media").files[0];
+      
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        var mediaUrl = event.target.result;
+        var username = getParameterByName('username');
+        displayPost(username, postContent, mediaUrl);
+      };
+      
+      if (media) {
+        reader.readAsDataURL(media);
+      } else {
+        var username = getParameterByName('username');
+        displayPost(username, postContent, null);
+      }
+    }
+
+    function displayPost(username, content, mediaUrl) {
+      var postFeed = document.getElementById("postFeed");
+      var postDiv = document.createElement("div");
+      postDiv.classList.add("post");
+
+      var postInfo = document.createElement("p");
+      postInfo.textContent = "@" + username + " :";
+      postDiv.appendChild(postInfo);
+
+      if (mediaUrl) {
+        var mediaContainer = document.createElement("div");
+        mediaContainer.classList.add("media-container");
+
+        if (mediaUrl.startsWith("data:image")) {
+          var image = document.createElement("img");
+          image.src = mediaUrl;
+          mediaContainer.appendChild(image);
+        } else if (mediaUrl.startsWith("data:video")) {
+          var video = document.createElement("video");
+          video.src = mediaUrl;
+          video.controls = true;
+          mediaContainer.appendChild(video);
+        } else if (mediaUrl.startsWith("data:")) {
+          var link = document.createElement("a");
+          link.href = mediaUrl;
+          link.textContent = mediaUrl;
+          mediaContainer.appendChild(link);
+        }
+
+        postDiv.appendChild(mediaContainer);
+      }
+
+      var postContent = document.createElement("p");
+      postContent.innerHTML = parseLinks(content); // Parse links in content
+      postDiv.appendChild(postContent);
+
+      // Insert the new post beneath the "Recent Posts" heading
+      postFeed.insertBefore(postDiv, postFeed.childNodes[2]);
+    }
+
+    function parseLinks(text) {
+      // Regex to find URLs in text
+      var urlRegex = /(https?:\/\/[^\s]+)/g;
+      // Replace URLs with clickable links
+      return text.replace(urlRegex, function(url) {
+        return '<a href="' + url + '" target="_blank">' + url + '</a>';
+      });
+    }
+
+    function cancelMedia() {
+      document.getElementById("media").value = ''; // Clear the selected media
+    }
+
+    // Function to get query parameter by name from URL
+    function getParameterByName(name, url = window.location.href) {
+      name = name.replace(/[\[\]]/g, '\\$&');
+      var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+          results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return '';
+      return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+  </script>
+</body>
+</html>
