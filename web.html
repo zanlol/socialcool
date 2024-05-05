@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Web Page (1.2)</title>
+<title>Web Page</title>
 <style>
 .post {
   border: 1px solid #ccc;
   padding: 10px;
   margin-bottom: 10px;
-  word-wrap: break-word; /* Allow long words to be broken and wrap onto the next line */
-  overflow-wrap: break-word; /* Also handle overflow in browsers that support this property */
+  word-wrap: break-word; 
+  overflow-wrap: break-word;
 }
 
 .post img, .post video {
   max-width: 100%;
-  max-height: 300px; /* Adjust height as needed */
+  max-height: 300px;
   margin-bottom: 5px;
 }
 
@@ -47,7 +47,7 @@
 window.onload = function() {
   var posts = JSON.parse(localStorage.getItem('posts')) || [];
   for (var i = 0; i < posts.length; i++) {
-    displayPost(posts[i].username, posts[i].content, posts[i].mediaUrl);
+    displayPost(posts[i].username, posts[i].content, posts[i].mediaUrl, posts[i].timestamp);
   }
 };
 
@@ -59,33 +59,33 @@ function submitPost() {
   var reader = new FileReader();
   reader.onload = function(event) {
     var mediaUrl = event.target.result;
-    displayPost(username, postContent, mediaUrl);
+    displayPost(username, postContent, mediaUrl, new Date());
     
     // Save the new post to local storage
     var posts = JSON.parse(localStorage.getItem('posts')) || [];
-    posts.push({ username: username, content: postContent, mediaUrl: mediaUrl });
+    posts.push({ username: username, content: postContent, mediaUrl: mediaUrl, timestamp: new Date() });
     localStorage.setItem('posts', JSON.stringify(posts));
   };
 
   if (media) {
     reader.readAsDataURL(media);
   } else {
-    displayPost(username, postContent, null);
+    displayPost(username, postContent, null, new Date());
     
     // Save the new post to local storage
     var posts = JSON.parse(localStorage.getItem('posts')) || [];
-    posts.push({ username: username, content: postContent, mediaUrl: null });
+    posts.push({ username: username, content: postContent, mediaUrl: null, timestamp: new Date() });
     localStorage.setItem('posts', JSON.stringify(posts));
   }
 }
 
-function displayPost(username, content, mediaUrl) {
+function displayPost(username, content, mediaUrl, timestamp) {
   var postFeed = document.getElementById("postFeed");
   var postDiv = document.createElement("div");
   postDiv.classList.add("post");
 
   var postInfo = document.createElement("p");
-  postInfo.textContent = "@" + username + " :";
+  postInfo.textContent = "@" + username + " / posted on " + formatDate(timestamp) + ":";
   postDiv.appendChild(postInfo);
 
   if (mediaUrl) {
@@ -126,6 +126,11 @@ function parseLinks(text) {
   return text.replace(urlRegex, function(url) {
     return '<a href="' + url + '" target="_blank">' + url + '</a>';
   });
+}
+
+function formatDate(date) {
+  var options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
 }
 
 function cancelMedia() {
